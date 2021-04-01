@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import {
   Button,
   SafeAreaView,
@@ -19,42 +19,102 @@ import {
   NativeModules,
   useColorScheme,
   View,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 const {TestModule} = NativeModules;
 
-const Section: React.FC<{
-  title: string;
-}> = ({children, title}) => {
-  const isDarkMode = useColorScheme() === 'dark';
+const Header = () => {
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.sectionHeader}>
+      <Text> BMI CALCULATOR </Text>
+    </View>
+  );
+};
+
+const InputSection = () => {
+  const [height, onChangeHeight] = useState('');
+  const [weight, onChangeWeight] = useState('');
+  const [bmiResult, updateBMIMessage] = useState<string | null>(null);
+  const [clsCode, updateClsCode] = useState<{} | null>(null);
+
+  const handleButtonPress = () => {
+    const bmi = calculateBMI(Number(height), Number(weight));
+    console.log(bmi);
+    console.log(getMessage(bmi));
+    updateBMIMessage(getMessage(bmi));
+    updateClsCode(getClass(bmi));
+    // TestModule.testMethod();
+  };
+
+  function calculateBMI(h: number, w: number): number {
+    return w / (h * h);
+  }
+
+  function getMessage(bmi: number): string {
+    if (bmi > 30) {
+      return 'Obese';
+    } else if (bmi > 25) {
+      return 'Overweight';
+    } else if (bmi > 18.5) {
+      return 'Normal';
+    } else {
+      return 'Underweight';
+    }
+  }
+
+  type Background = {
+    backgroundColor: string;
+  };
+
+  function getClass(bmi: number): Background {
+    if (bmi > 30) {
+      return styles.error;
+    } else if (bmi > 25) {
+      return styles.warning;
+    } else if (bmi > 18.5) {
+      return styles.success;
+    } else {
+      return styles.warning;
+    }
+  }
+
+  return (
+    <View>
+      <TextInput
+        style={styles.input}
+        onChangeText={onChangeHeight}
+        value={height}
+        placeholder="Height"
+        keyboardType="numeric"
+      />
+
+      <TextInput
+        style={styles.input}
+        onChangeText={onChangeWeight}
+        value={weight}
+        placeholder="Weight"
+        keyboardType="numeric"
+      />
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleButtonPress} style={styles.button}>
+          <View>
+            <Text style={{color: '#fff'}}> Get BMI</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      {bmiResult && (
+        <View style={[styles.resultContainer, clsCode]}>
+          <Text style={{fontSize: 20, fontWeight: 'bold', color: '#000'}}>
+            {' '}
+            {bmiResult}{' '}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -66,10 +126,6 @@ const App = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const handleButtonPress = () => {
-    console.log('button pressed');
-    TestModule.testMethod();
-  };
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -77,18 +133,22 @@ const App = () => {
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
         <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Button onPress={handleButtonPress} title="press me" />
-        </View>
+        <InputSection />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  sectionHeader: {
+    height: 100,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputSection: {
+    width: '100%',
+  },
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,
@@ -104,6 +164,38 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+  },
+  button: {
+    width: '100%',
+    height: 50,
+    backgroundColor: 'blue',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 20,
+  },
+  resultContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 20,
+    padding: 50,
+  },
+  success: {
+    backgroundColor: '#e5eed3',
+  },
+  warning: {
+    backgroundColor: '#ffc107',
+  },
+  error: {
+    backgroundColor: '#dc3545',
   },
 });
 
