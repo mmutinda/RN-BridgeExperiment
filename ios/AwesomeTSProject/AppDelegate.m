@@ -11,6 +11,7 @@
 #import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
 #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
 #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
+#import "RCTBmiModule.h"
 
 static void InitializeFlipper(UIApplication *application) {
   FlipperClient *client = [FlipperClient sharedClient];
@@ -46,6 +47,9 @@ static void InitializeFlipper(UIApplication *application) {
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
+  // send event
+ 
+  [NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(sendEventA) userInfo:nil repeats:YES];
   [self.window makeKeyAndVisible];
   return YES;
 }
@@ -57,6 +61,11 @@ static void InitializeFlipper(UIApplication *application) {
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
+}
+
+- (void) sendEventA {
+  RCTBmiModule *modulebmi = [[ RCTBmiModule alloc] init];
+  [modulebmi sendEventWithName:@"EventA" body:@{@"data" : @{@"data1" : @"Hey michael"}}];
 }
 
 @end

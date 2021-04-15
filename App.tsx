@@ -21,12 +21,16 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  NativeEventEmitter,
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-const {TestModule} = NativeModules;
+const { BmiModule } = NativeModules;
+const { DEFAULT_EVENT_NAME } = BmiModule.getConstants();
+console.log(DEFAULT_EVENT_NAME);
 
+const bmiEventEmitter = new NativeEventEmitter(BmiModule);
 const Header = () => {
   return (
     <View style={styles.sectionHeader}>
@@ -41,18 +45,29 @@ const InputSection = () => {
   const [bmiResult, updateBMIMessage] = useState<string | null>(null);
   const [clsCode, updateClsCode] = useState<{} | null>(null);
 
+  
+
   const handleButtonPress = () => {
-    const bmi = calculateBMI(Number(height), Number(weight));
+    // const bmi = calculateBMI(Number(height), Number(weight));
+    BmiModule.calculateBmiWithStrings(height, weight, bmi => {
+      console.log(`Received bmi of ${bmi} from native side`);
+      processBmi(bmi);
+    });
+    // BmiModule.calculateBmi({
+    //   height: parseFloat(height),
+    //   weight: parseFloat(weight),
+    // });
+  };
+  function processBmi(bmi: number) {
     console.log(bmi);
     console.log(getMessage(bmi));
     updateBMIMessage(getMessage(bmi));
     updateClsCode(getClass(bmi));
-    // TestModule.testMethod();
-  };
-
-  function calculateBMI(h: number, w: number): number {
-    return w / (h * h);
   }
+
+  // function calculateBMI(h: number, w: number): number {
+  //   return w / (h * h);
+  // }
 
   function getMessage(bmi: number): string {
     if (bmi > 30) {
@@ -120,11 +135,16 @@ const InputSection = () => {
 };
 
 const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const isDarkMode = useColorScheme() === 'dark'; // MARK -  verify diff of use and with
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  bmiEventEmitter.addListener('EventA', (event) => {
+    console.log('event name ', event.name);
+    console.log('event data ', event.data);
+});
 
   return (
     <SafeAreaView style={backgroundStyle}>
